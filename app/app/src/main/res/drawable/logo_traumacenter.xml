@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    
+    <!-- Background circle with gradient effect -->
+    <path
+        android:pathData="M100,100m-90,0a90,90 0,1 1,180 0a90,90 0,1 1,-180 0"
+        android:fillColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeColor="#CCCCCC"/>
+    
+    <!-- Medical Cross - Top and Left arms (Blue) -->
+    <group>
+        <!-- Top arm (Blue) -->
+        <path
+            android:pathData="M70,40 L130,40 L130,70 L100,70 L100,100 L70,100 Z"
+            android:fillColor="#2196F3"/>
+        <!-- Left arm (Blue) -->
+        <path
+            android:pathData="M40,70 L70,70 L70,100 L40,100 L40,130 L70,130 L70,100 L100,100 L100,130 L70,130 L70,160 L40,160 Z"
+            android:fillColor="#2196F3"/>
+    </group>
+    
+    <!-- Medical Cross - Bottom and Right arms (Black) -->
+    <group>
+        <!-- Right arm (Black) -->
+        <path
+            android:pathData="M130,70 L160,70 L160,100 L130,100 L130,130 L160,130 L160,160 L130,160 Z"
+            android:fillColor="#000000"/>
+        <!-- Bottom arm (Black) -->
+        <path
+            android:pathData="M70,130 L130,130 L130,160 L100,160 L100,130 L70,130 Z"
+            android:fillColor="#000000"/>
+    </group>
+    
+    <!-- Upward arrow in top arm (White) -->
+    <path
+        android:pathData="M85,50 L100,35 L115,50 L105,50 L105,65 L95,65 L95,50 Z"
+        android:fillColor="#FFFFFF"/>
+    
+    <!-- Stretcher with wings in left arm (White) -->
+    <path
+        android:pathData="M50,85 L50,95 L65,95 L65,90 L70,90 L70,95 L80,95 L80,90 L85,90 L85,95 L90,95 L90,85 Z"
+        android:fillColor="#FFFFFF"/>
+    <path
+        android:pathData="M55,88 L60,88 L60,92 L55,92 Z"
+        android:fillColor="#FFFFFF"/>
+    <path
+        android:pathData="M75,88 L80,88 L80,92 L75,92 Z"
+        android:fillColor="#FFFFFF"/>
+    
+    <!-- Stretcher with wheels in right arm (White) -->
+    <path
+        android:pathData="M135,85 L135,95 L150,95 L150,90 L155,90 L155,95 L165,95 L165,90 L170,90 L170,95 L175,95 L175,85 Z"
+        android:fillColor="#FFFFFF"/>
+    <!-- Wheel 1 (circle converted to path) -->
+    <path
+        android:pathData="M145,92m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"
+        android:fillColor="#FFFFFF"/>
+    <!-- Wheel 2 (circle converted to path) -->
+    <path
+        android:pathData="M165,92m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0"
+        android:fillColor="#FFFFFF"/>
+    
+    <!-- Downward arrow in bottom arm (White) -->
+    <path
+        android:pathData="M85,150 L100,165 L115,150 L105,150 L105,135 L95,135 L95,150 Z"
+        android:fillColor="#FFFFFF"/>
+    
+    <!-- Small X shape with circles in bottom arm (White) -->
+    <path
+        android:pathData="M95,145 L100,150 L105,145 L100,140 Z"
+        android:fillColor="#FFFFFF"/>
+    <!-- Circle 1 (converted to path) -->
+    <path
+        android:pathData="M95,145m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"
+        android:fillColor="#FFFFFF"/>
+    <!-- Circle 2 (converted to path) -->
+    <path
+        android:pathData="M105,145m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"
+        android:fillColor="#FFFFFF"/>
+    <!-- Circle 3 (converted to path) -->
+    <path
+        android:pathData="M100,140m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"
+        android:fillColor="#FFFFFF"/>
+    <!-- Circle 4 (converted to path) -->
+    <path
+        android:pathData="M100,150m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0"
+        android:fillColor="#FFFFFF"/>
+    
+</vector>
