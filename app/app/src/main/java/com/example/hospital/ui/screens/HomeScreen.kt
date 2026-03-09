@@ -24,21 +24,30 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.hospital.core.session.TokenManager
 import com.example.hospital.data.fake.FakeStaffRepository
 import com.example.hospital.data.model.Staff
+import com.example.hospital.data.repository.PersonalMapper
+import com.example.hospital.data.repository.PersonalRepository
 import com.example.hospital.ui.components.StaffCard
 import com.example.hospital.ui.components.StaffDetailModal
 import com.example.hospital.ui.theme.TextSecondary
 import com.example.hospital.ui.theme.TopBlue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,13 +55,37 @@ fun HomeScreen(
     navController: NavController? = null,
     modifier: Modifier = Modifier
 ) {
-    val allStaff = FakeStaffRepository.getStaff()
-    
     // State management
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf("Todos") }
     var selectedStaff by remember { mutableStateOf<Staff?>(null) }
     var showModal by remember { mutableStateOf(false) }
+    var allStaff by remember { mutableStateOf<List<Staff>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var hasError by remember { mutableStateOf(false) }
+    
+    // Cargar datos del backend cuando el token esté disponible
+    LaunchedEffect(Unit) {
+        if (TokenManager.tokenAcceso != null || TokenManager.getToken() != "z tokenSecreto") {
+            try {
+                val personal = withContext(Dispatchers.IO) {
+                    PersonalRepository.obtenerPersonal()
+                }
+                allStaff = PersonalMapper.mapToStaffList(personal)
+                isLoading = false
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Si falla, usar datos falsos
+                allStaff = FakeStaffRepository.getStaff()
+                hasError = true
+                isLoading = false
+            }
+        } else {
+            // Si no hay token, usar datos falsos
+            allStaff = FakeStaffRepository.getStaff()
+            isLoading = false
+        }
+    }
     
     // Filter staff based on search and profession filter
     val filteredStaff = remember(searchQuery, selectedFilter, allStaff) {
@@ -65,9 +98,14 @@ fun HomeScreen(
             // Profession filter
             val matchesFilter = when (selectedFilter) {
                 "Todos" -> true
-                "Médicos" -> staff.profesion.equals("Medico", ignoreCase = true)
+                "Médicos" -> staff.profesion.contains("Medico", ignoreCase = true) || 
+                            staff.profesion.contains("Médico", ignoreCase = true) ||
+                            staff.profesion.contains("Doctor", ignoreCase = true) ||
+                            staff.profesion.contains("Cardiólogo", ignoreCase = true) ||
+                            staff.profesion.contains("Pediatra", ignoreCase = true) ||
+                            staff.profesion.contains("Cirujano", ignoreCase = true)
                 "Enfermeras" -> staff.profesion.contains("Enfermer", ignoreCase = true)
-                "Obstetras" -> staff.profesion.equals("Obstetra", ignoreCase = true)
+                "Obstetras" -> staff.profesion.contains("Obstetr", ignoreCase = true)
                 else -> true
             }
             
@@ -75,9 +113,19 @@ fun HomeScreen(
         }
     }
     
-    Column(
-        modifier = modifier.fillMaxSize()
-    ) {
+    if (isLoading) {
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(
+                color = TopBlue
+            )
+        }
+    } else {
+        Column(
+            modifier = modifier.fillMaxSize()
+        ) {
         // Search Bar
         Card(
             modifier = Modifier
@@ -168,6 +216,7 @@ fun HomeScreen(
                     )
                 }
             }
+        }
         }
     }
     

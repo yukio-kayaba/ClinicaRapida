@@ -22,9 +22,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.hospital.core.network.ApiConfig
+import com.example.hospital.core.network.CoilImageLoader
 import com.example.hospital.data.model.Staff
 import com.example.hospital.ui.theme.CardBackground
 import com.example.hospital.ui.theme.TextPrimary
@@ -59,7 +63,7 @@ fun StaffCard(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Circular avatar with initials
+                // Circular avatar with photo or initials
                 Box(
                     modifier = Modifier
                         .size(56.dp)
@@ -67,12 +71,30 @@ fun StaffCard(
                         .background(TopBlue.copy(alpha = 0.8f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = getInitials(staff.nombre),
-                        color = Color.White,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    val fotoUrl = staff.imagenes.firstOrNull()
+                    if (fotoUrl != null && fotoUrl.isNotEmpty()) {
+                        val context = androidx.compose.ui.platform.LocalContext.current
+                        AsyncImage(
+                            model = if (fotoUrl.startsWith("http://") || fotoUrl.startsWith("https://")) {
+                                fotoUrl
+                            } else {
+                                ApiConfig.buildImageUrl(fotoUrl)
+                            },
+                            imageLoader = CoilImageLoader.get(context),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text(
+                            text = getInitials(staff.nombre),
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
                 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -82,7 +104,7 @@ fun StaffCard(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "${staff.profesion} ${staff.nombre}",
+                        text = staff.nombre,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary

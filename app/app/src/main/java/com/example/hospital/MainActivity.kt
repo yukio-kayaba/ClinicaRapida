@@ -14,32 +14,60 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.hospital.core.session.ProjectInitializer
+import com.example.hospital.core.session.ProjectManager
 import com.example.hospital.navigation.AppNavigation
 import com.example.hospital.ui.components.BottomNavbar
 import com.example.hospital.ui.components.HeaderBar
 import com.example.hospital.ui.theme.HospitalTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        // Inicializar proyecto cuando la app inicia
+        lifecycleScope.launch {
+            ProjectInitializer.initialize(this@MainActivity, this) { success ->
+                if (success) {
+                    // Proyecto inicializado correctamente
+                }
+            }
+        }
+        
         setContent {
             HospitalTheme {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
+                val scope = rememberCoroutineScope()
+                val context = LocalContext.current
+                var nombreProyecto by remember { mutableStateOf(ProjectManager.nombreProyecto) }
+                
+                // Inicializar proyecto (backup en caso de que no se haya inicializado)
+                LaunchedEffect(Unit) {
+                    ProjectInitializer.initialize(context, scope) { success ->
+                        nombreProyecto = ProjectManager.nombreProyecto
+                    }
+                }
                 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        HeaderBar()
+                        HeaderBar(nombreProyecto = nombreProyecto)
                     },
                     bottomBar = {
                         BottomNavbar(
@@ -64,8 +92,9 @@ class MainActivity : ComponentActivity() {
                         val context = LocalContext.current
                         FloatingActionButton(
                             onClick = {
+                                val phoneNumber = ProjectManager.telefono ?: "+51987654321"
                                 val intent = Intent(Intent.ACTION_DIAL).apply {
-                                    data = Uri.parse("tel:+51987654321")
+                                    data = Uri.parse("tel:$phoneNumber")
                                 }
                                 context.startActivity(intent)
                             }

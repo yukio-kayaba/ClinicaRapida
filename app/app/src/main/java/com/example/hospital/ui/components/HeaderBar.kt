@@ -30,6 +30,7 @@ import com.example.hospital.ui.theme.TopPurple
 @Composable
 fun HeaderBar(
     modifier: Modifier = Modifier,
+    nombreProyecto: String? = null,
     onMenuClick: () -> Unit = {}
 ) {
     Box(
@@ -61,7 +62,7 @@ fun HeaderBar(
                 )
                 
                 Text(
-                    text = "Hospital Monje Medrano",
+                    text = nombreProyecto ?: "Hospital Monje Medrano 2",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White

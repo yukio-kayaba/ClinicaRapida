@@ -32,10 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.example.hospital.core.network.ApiConfig
+import com.example.hospital.core.network.CoilImageLoader
 import com.example.hospital.data.model.Staff
 import com.example.hospital.navigation.Screen
 import com.example.hospital.ui.theme.TextPrimary
@@ -122,19 +126,21 @@ fun StaffDetailModal(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(staff.imagenes) { imageUrl ->
-                        Box(
+                        val fullImageUrl = if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+                            imageUrl
+                        } else {
+                            ApiConfig.buildImageUrl(imageUrl)
+                        }
+                        
+                        AsyncImage(
+                            model = fullImageUrl,
+                            imageLoader = CoilImageLoader.get(LocalContext.current),
+                            contentDescription = "Foto del profesional",
                             modifier = Modifier
                                 .size(width = 280.dp, height = 200.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(TopBlue.copy(alpha = 0.2f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Imagen",
-                                color = TextSecondary,
-                                fontSize = 14.sp
-                            )
-                        }
+                                .clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Crop
+                        )
                     }
                 }
             }
