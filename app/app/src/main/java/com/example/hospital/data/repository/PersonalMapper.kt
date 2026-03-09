@@ -7,7 +7,12 @@ import com.example.hospital.data.model.Staff
 object PersonalMapper {
     fun mapToStaff(personal: Personal): Staff {
         val nombreCompleto = "${personal.nombre} ${personal.apellido}"
-        val profesionNombre = personal.profesion.firstOrNull()?.nombreprofesion ?: "Profesional"
+        val profesiones = personal.profesion
+            .map { it.nombreprofesion.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+
+        val profesionNombre = profesiones.firstOrNull() ?: "Profesional"
         val telefonoPrincipal = personal.telefono.firstOrNull { it.principal }?.numeroCel 
             ?: personal.telefono.firstOrNull()?.numeroCel 
             ?: ""
@@ -31,6 +36,7 @@ object PersonalMapper {
             nombre = nombreCompleto,
             especialidad = profesionNombre,
             profesion = profesionNombre,
+            profesiones = profesiones,
             experiencia = experiencia,
             descripcion = personal.descripcionpersonal ?: "",
             imagenes = fotosUrls,

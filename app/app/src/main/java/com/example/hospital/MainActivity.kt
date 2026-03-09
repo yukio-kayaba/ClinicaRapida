@@ -28,6 +28,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.hospital.core.session.ProjectInitializer
 import com.example.hospital.core.session.ProjectManager
+import com.example.hospital.core.util.PhoneUtils
 import com.example.hospital.navigation.AppNavigation
 import com.example.hospital.ui.components.BottomNavbar
 import com.example.hospital.ui.components.HeaderBar
@@ -92,7 +93,7 @@ class MainActivity : ComponentActivity() {
                         val context = LocalContext.current
                         FloatingActionButton(
                             onClick = {
-                                val phoneNumber = ProjectManager.telefono ?: "+51987654321"
+                                val phoneNumber = PhoneUtils.toPeruE164(ProjectManager.telefono) ?: "+51987654321"
                                 val intent = Intent(Intent.ACTION_DIAL).apply {
                                     data = Uri.parse("tel:$phoneNumber")
                                 }

@@ -1,5 +1,8 @@
 package com.example.hospital.ui.screens
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import java.util.Calendar
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
@@ -22,16 +26,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.hospital.data.fake.FakeAppointmentRepository
-import com.example.hospital.data.model.AppointmentRequest
 import com.example.hospital.navigation.Screen
 import com.example.hospital.ui.theme.TextSecondary
 import com.example.hospital.ui.theme.TopBlue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.example.hospital.data.model.ReservacionRequest
+import com.example.hospital.data.repository.ReservacionRepository
 
 @Composable
 fun AppointmentFormScreen(
@@ -46,11 +51,14 @@ fun AppointmentFormScreen(
     var correo by remember { mutableStateOf("") }
     var fecha by remember { mutableStateOf("") }
     var hora by remember { mutableStateOf("") }
+    var motivo by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var showSuccessMessage by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val calendar = remember { Calendar.getInstance() }
     
     Column(
         modifier = modifier
@@ -145,11 +153,12 @@ fun AppointmentFormScreen(
             singleLine = true
         )
         
-        // Fecha Field
+        // Fecha Field (DatePicker)
         OutlinedTextField(
             value = fecha,
-            onValueChange = { fecha = it },
-            label = { Text("Fecha de cita (DD/MM/YYYY)") },
+            onValueChange = { },
+            readOnly = true,
+            label = { Text("Fecha de cita") },
             placeholder = { Text("Ej: 25/12/2024", color = TextSecondary) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -159,14 +168,42 @@ fun AppointmentFormScreen(
                 focusedContainerColor = androidx.compose.ui.graphics.Color.White,
                 unfocusedContainerColor = androidx.compose.ui.graphics.Color.White
             ),
-            singleLine = true
+            singleLine = true,
+            enabled = !isLoading && !showSuccessMessage
         )
         
-        // Hora Field
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Seleccionar fecha",
+            fontSize = 12.sp,
+            color = TextSecondary,
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .clickable(enabled = !isLoading && !showSuccessMessage) {
+                    val year = calendar.get(Calendar.YEAR)
+                    val month = calendar.get(Calendar.MONTH)
+                    val day = calendar.get(Calendar.DAY_OF_MONTH)
+                    
+                    DatePickerDialog(
+                        context,
+                        { _, y, m, d ->
+                            val mm = (m + 1).toString().padStart(2, '0')
+                            val dd = d.toString().padStart(2, '0')
+                            fecha = "$dd/$mm/$y"
+                        },
+                        year,
+                        month,
+                        day
+                    ).show()
+                }
+        )
+        
+        // Hora Field (TimePickerDialog)
         OutlinedTextField(
             value = hora,
-            onValueChange = { hora = it },
-            label = { Text("Hora de cita (HH:MM)") },
+            onValueChange = { },
+            readOnly = true,
+            label = { Text("Hora de cita") },
             placeholder = { Text("Ej: 14:30", color = TextSecondary) },
             modifier = Modifier
                 .fillMaxWidth()
@@ -176,7 +213,50 @@ fun AppointmentFormScreen(
                 focusedContainerColor = androidx.compose.ui.graphics.Color.White,
                 unfocusedContainerColor = androidx.compose.ui.graphics.Color.White
             ),
-            singleLine = true
+            singleLine = true,
+            enabled = !isLoading && !showSuccessMessage
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Seleccionar hora",
+            fontSize = 12.sp,
+            color = TextSecondary,
+            modifier = Modifier
+                .padding(bottom = 20.dp)
+                .clickable(enabled = !isLoading && !showSuccessMessage) {
+                    val hour = calendar.get(Calendar.HOUR_OF_DAY)
+                    val minute = calendar.get(Calendar.MINUTE)
+                    
+                    TimePickerDialog(
+                        context,
+                        { _, h, min ->
+                            val hh = h.toString().padStart(2, '0')
+                            val mm = min.toString().padStart(2, '0')
+                            hora = "$hh:$mm"
+                        },
+                        hour,
+                        minute,
+                        true
+                    ).show()
+                }
+        )
+
+        // Motivo Field
+        OutlinedTextField(
+            value = motivo,
+            onValueChange = { motivo = it },
+            label = { Text("Motivo") },
+            placeholder = { Text("Ej: Consulta general", color = TextSecondary) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = androidx.compose.ui.graphics.Color.White,
+                unfocusedContainerColor = androidx.compose.ui.graphics.Color.White
+            ),
+            minLines = 3
         )
         
         // Success Message
@@ -197,18 +277,19 @@ fun AppointmentFormScreen(
                 if (!isLoading) {
                     isLoading = true
                     scope.launch {
-                        val request = AppointmentRequest(
-                            dni = dni,
+                        val request = ReservacionRequest(
                             nombre = nombre,
                             apellido = apellido,
-                            telefono = telefono,
                             correo = correo,
-                            doctorId = doctorId,
+                            dni = dni,
                             fecha = fecha,
-                            hora = hora
+                            hora = hora,
+                            idpersonalacceso = doctorId,
+                            motivo = motivo,
+                            telefono = telefono
                         )
                         
-                        FakeAppointmentRepository.sendAppointmentRequest(request)
+                        ReservacionRepository.crearReservacion(request)
                         
                         isLoading = false
                         showSuccessMessage = true

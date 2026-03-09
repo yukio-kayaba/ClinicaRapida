@@ -10,6 +10,7 @@ object FakeStaffRepository {
                 nombre = "Laura Sánchez",
                 especialidad = "Ginecología y Obstetricia",
                 profesion = "Obstetra",
+                profesiones = listOf("Obstetra"),
                 experiencia = 10,
                 descripcion = "Especialista en atención prenatal y partos",
                 imagenes = listOf(
@@ -22,6 +23,7 @@ object FakeStaffRepository {
                 nombre = "Carlos Ramirez",
                 especialidad = "Cuidados Intensivos",
                 profesion = "Enfermero",
+                profesiones = listOf("Enfermero"),
                 experiencia = 8,
                 descripcion = "Experto en cuidados críticos y emergencias",
                 imagenes = listOf(
@@ -34,6 +36,7 @@ object FakeStaffRepository {
                 nombre = "Juan Perez",
                 especialidad = "Cardiología",
                 profesion = "Medico",
+                profesiones = listOf("Medico", "Cardiólogo"),
                 experiencia = 12,
                 descripcion = "Cardiólogo con amplia experiencia en diagnóstico y tratamiento",
                 imagenes = listOf(

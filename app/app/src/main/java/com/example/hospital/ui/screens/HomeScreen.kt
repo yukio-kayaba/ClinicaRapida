@@ -25,7 +25,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +41,7 @@ import com.example.hospital.data.fake.FakeStaffRepository
 import com.example.hospital.data.model.Staff
 import com.example.hospital.data.repository.PersonalMapper
 import com.example.hospital.data.repository.PersonalRepository
+import com.example.hospital.ui.components.AppLoader
 import com.example.hospital.ui.components.StaffCard
 import com.example.hospital.ui.components.StaffDetailModal
 import com.example.hospital.ui.theme.TextSecondary
@@ -87,28 +87,32 @@ fun HomeScreen(
         }
     }
     
+    // Filtros dinámicos (no repetidos) en base a profesiones del backend
+    val professionFilters = remember(allStaff) {
+        val unique = allStaff
+            .flatMap { staff -> staff.profesiones.ifEmpty { listOf(staff.profesion) } }
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+        listOf("Todos") + unique
+    }
+
     // Filter staff based on search and profession filter
     val filteredStaff = remember(searchQuery, selectedFilter, allStaff) {
         allStaff.filter { staff ->
             // Search filter (by name or specialty)
             val matchesSearch = searchQuery.isEmpty() ||
-                    staff.nombre.contains(searchQuery, ignoreCase = true) ||
-                    staff.especialidad.contains(searchQuery, ignoreCase = true)
-            
-            // Profession filter
-            val matchesFilter = when (selectedFilter) {
-                "Todos" -> true
-                "Médicos" -> staff.profesion.contains("Medico", ignoreCase = true) || 
-                            staff.profesion.contains("Médico", ignoreCase = true) ||
-                            staff.profesion.contains("Doctor", ignoreCase = true) ||
-                            staff.profesion.contains("Cardiólogo", ignoreCase = true) ||
-                            staff.profesion.contains("Pediatra", ignoreCase = true) ||
-                            staff.profesion.contains("Cirujano", ignoreCase = true)
-                "Enfermeras" -> staff.profesion.contains("Enfermer", ignoreCase = true)
-                "Obstetras" -> staff.profesion.contains("Obstetr", ignoreCase = true)
-                else -> true
+                staff.nombre.contains(searchQuery, ignoreCase = true) ||
+                staff.especialidad.contains(searchQuery, ignoreCase = true)
+
+            // Profession filter (dinámico por nombreprofesion)
+            val matchesFilter = if (selectedFilter == "Todos") {
+                true
+            } else {
+                val professions = staff.profesiones.ifEmpty { listOf(staff.profesion) }
+                professions.any { it.equals(selectedFilter, ignoreCase = true) }
             }
-            
+
             matchesSearch && matchesFilter
         }
     }
@@ -118,9 +122,7 @@ fun HomeScreen(
             modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(
-                color = TopBlue
-            )
+            AppLoader()
         }
     } else {
         Column(
@@ -165,16 +167,14 @@ fun HomeScreen(
             )
         }
         
-        // Filter Chips - Horizontal Scrollable
+        // Filter Chips - Horizontal Scrollable (dinámicos)
         LazyRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
-            val filters = listOf("Todos", "Médicos", "Enfermeras", "Obstetras")
-            
-            items(filters) { filter ->
+            items(professionFilters) { filter ->
                 FilterChip(
                     selected = selectedFilter == filter,
                     onClick = { selectedFilter = filter },

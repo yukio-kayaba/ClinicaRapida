@@ -40,6 +40,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.hospital.core.network.ApiConfig
 import com.example.hospital.core.network.CoilImageLoader
+import com.example.hospital.core.util.PhoneUtils
 import com.example.hospital.data.model.Staff
 import com.example.hospital.navigation.Screen
 import com.example.hospital.ui.theme.TextPrimary
@@ -189,8 +190,9 @@ fun StaffDetailModal(
                 // Call Button
                 OutlinedButton(
                     onClick = {
+                        val phoneNumber = PhoneUtils.toPeruE164(staff.telefono) ?: staff.telefono
                         val intent = Intent(Intent.ACTION_DIAL).apply {
-                            data = Uri.parse("tel:${staff.telefono}")
+                            data = Uri.parse("tel:$phoneNumber")
                         }
                         context.startActivity(intent)
                     },

@@ -1,6 +1,7 @@
 package com.example.hospital.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,7 +12,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hospital.data.fake.FakeServiceRepository
 import com.example.hospital.data.model.Service
+import com.example.hospital.data.repository.ServiciosRepository
+import com.example.hospital.ui.components.AppLoader
 import com.example.hospital.ui.theme.CardBackground
 import com.example.hospital.ui.theme.TextPrimary
 import com.example.hospital.ui.theme.TextSecondary
@@ -36,23 +38,41 @@ fun ServicesScreen(
 ) {
     var services by remember { mutableStateOf<List<Service>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var hasError by remember { mutableStateOf(false) }
     
     LaunchedEffect(Unit) {
-        services = FakeServiceRepository.getServices()
-        isLoading = false
+        try {
+            services = ServiciosRepository.obtenerServicios()
+            hasError = false
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // fallback
+            services = FakeServiceRepository.getServices()
+            hasError = true
+        } finally {
+            isLoading = false
+        }
     }
     
     Column(
         modifier = modifier.fillMaxSize()
     ) {
         if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                color = androidx.compose.ui.graphics.Color(0xFF5B86E5)
-            )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                AppLoader()
+            }
         } else {
+            if (hasError) {
+                Text(
+                    text = "No se pudo cargar desde el servidor. Mostrando datos locales.",
+                    color = TextSecondary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    fontSize = 12.sp
+                )
+            }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),

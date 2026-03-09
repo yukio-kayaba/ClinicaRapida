@@ -1,5 +1,6 @@
 package com.example.hospital.ui.screens
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,20 +18,29 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.hospital.core.session.TokenManager
 import com.example.hospital.data.fake.FakeStaffRepository
 import com.example.hospital.data.model.Staff
+import com.example.hospital.data.repository.PersonalMapper
+import com.example.hospital.data.repository.PersonalRepository
+import com.example.hospital.ui.components.AppLoader
 import com.example.hospital.ui.components.StaffCard
 import com.example.hospital.ui.components.StaffDetailModal
 import com.example.hospital.ui.theme.TextSecondary
 import com.example.hospital.ui.theme.TopBlue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,12 +48,35 @@ fun SearchScreen(
     navController: NavController? = null,
     modifier: Modifier = Modifier
 ) {
-    val allStaff = FakeStaffRepository.getStaff()
-    
     // State management
     var searchQuery by remember { mutableStateOf("") }
     var selectedStaff by remember { mutableStateOf<Staff?>(null) }
     var showModal by remember { mutableStateOf(false) }
+    var allStaff by remember { mutableStateOf<List<Staff>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var hasError by remember { mutableStateOf(false) }
+
+    // Cargar datos del backend (misma lógica que Home). Si falla, fallback al fake.
+    LaunchedEffect(Unit) {
+        if (TokenManager.tokenAcceso != null || TokenManager.getToken() != "z tokenSecreto") {
+            try {
+                val personal = withContext(Dispatchers.IO) {
+                    PersonalRepository.obtenerPersonal()
+                }
+                allStaff = PersonalMapper.mapToStaffList(personal)
+                hasError = false
+            } catch (e: Exception) {
+                e.printStackTrace()
+                allStaff = FakeStaffRepository.getStaff()
+                hasError = true
+            } finally {
+                isLoading = false
+            }
+        } else {
+            allStaff = FakeStaffRepository.getStaff()
+            isLoading = false
+        }
+    }
     
     // Filter staff based on search query (real-time)
     val filteredStaff = remember(searchQuery, allStaff) {
@@ -57,72 +90,90 @@ fun SearchScreen(
         }
     }
     
-    Column(
-        modifier = modifier.fillMaxSize()
-    ) {
-        // Search Bar
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
-                .shadow(
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(24.dp)
-                ),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = androidx.compose.ui.graphics.Color.White
-            )
+    if (isLoading) {
+        Box(
+            modifier = modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = {
-                    Text(
-                        text = "Buscar por nombre o especialidad...",
-                        color = TextSecondary
-                    )
-                },
-                leadingIcon = {
-                    androidx.compose.material3.Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Search"
-                    )
-                },
-                shape = RoundedCornerShape(24.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = androidx.compose.ui.graphics.Color.White,
-                    unfocusedContainerColor = androidx.compose.ui.graphics.Color.White
-                ),
-                singleLine = true
-            )
+            AppLoader()
         }
-        
-        // Staff List
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp)
+    } else {
+        Column(
+            modifier = modifier.fillMaxSize()
         ) {
-            if (filteredStaff.isEmpty() && searchQuery.isNotEmpty()) {
-                item {
-                    Text(
-                        text = "No se encontraron resultados",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        color = TextSecondary
-                    )
-                }
-            } else {
-                items(filteredStaff) { staff ->
-                    StaffCard(
-                        staff = staff,
-                        onClick = {
-                            selectedStaff = staff
-                            showModal = true
-                        }
-                    )
+            // Search Bar
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .shadow(
+                        elevation = 4.dp,
+                        shape = RoundedCornerShape(24.dp)
+                    ),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = androidx.compose.ui.graphics.Color.White
+                )
+            ) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            text = "Buscar por nombre o especialidad...",
+                            color = TextSecondary
+                        )
+                    },
+                    leadingIcon = {
+                        androidx.compose.material3.Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search"
+                        )
+                    },
+                    shape = RoundedCornerShape(24.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = androidx.compose.ui.graphics.Color.White,
+                        unfocusedContainerColor = androidx.compose.ui.graphics.Color.White
+                    ),
+                    singleLine = true
+                )
+            }
+
+            if (hasError) {
+                Text(
+                    text = "No se pudo cargar desde el servidor. Mostrando datos locales.",
+                    color = TextSecondary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    fontSize = 12.sp
+                )
+            }
+
+            // Staff List
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                if (filteredStaff.isEmpty() && searchQuery.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "No se encontraron resultados",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            color = TextSecondary
+                        )
+                    }
+                } else {
+                    items(filteredStaff) { staff ->
+                        StaffCard(
+                            staff = staff,
+                            onClick = {
+                                selectedStaff = staff
+                                showModal = true
+                            }
+                        )
+                    }
                 }
             }
         }
