@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Reserva, EstadoReserva } from '../types/reserva';
 import { RESERVAS_MOCK } from '../data/reservasMock';
+import { useSocket } from './socketsContext';
+import { Consultas } from '@/data/Consultas';
+import { RUTA } from '@/const';
+import Swal from 'sweetalert2';
 
 export interface ReservasContextType {
   reservas: Reserva[];
@@ -18,7 +22,9 @@ const ReservasContext = createContext<ReservasContextType | undefined>(undefined
 const RESERVAS_STORAGE_KEY = 'reservas_medicas';
 
 export const ReservasProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const socket = useSocket();
   const [reservas, setReservas] = useState<Reserva[]>(() => {
+  
     const stored = localStorage.getItem(RESERVAS_STORAGE_KEY);
     if (stored && stored !== '{}') {
       try {
@@ -33,6 +39,30 @@ export const ReservasProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     localStorage.setItem(RESERVAS_STORAGE_KEY, JSON.stringify(reservas));
   }, [reservas]);
+
+  useEffect(()=>{
+    if(!socket)return;
+
+    const getReserva = (reserva:Reserva)=>{
+      setReservas((prev)=>{
+        if(prev.some(re => re.idreservas === reserva.idreservas))return prev;
+        return [...prev,reserva]
+      })
+    }
+
+    const updateReserva = (reserva:Reserva)=>{
+      setReservas(rese =>
+        rese.map(r=> r.idreservas === reserva.idreservas? {...r,...reserva}:r,)
+      );
+    }
+
+    socket.on("server::CM::reserva", getReserva);
+    socket.on("server::CM::reservaConfirm",updateReserva);
+    return ()=>{
+      socket.off("server::CM::reserva", getReserva);
+      socket.off("server::CM::reservaConfirm",updateReserva);
+    }
+  },[socket])
 
   const addReserva = async (
     reserva: Omit<Reserva, 'idreservas' | 'fechacreacion' | 'estado'>,
@@ -62,10 +92,30 @@ export const ReservasProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  const cambiarEstado = (id: Reserva['idreservas'], estado: EstadoReserva) => {
-    setReservas(prev =>
-      prev.map(r => (r.idreservas === id ? { ...r, estado } : r)),
-    );
+  const cambiarEstado =  async(id: Reserva['idreservas'], estado: EstadoReserva) => {
+    const data = {
+      idreservas: id,
+      estado: estado,
+    };
+    await Consultas.POSTL(`${RUTA}/api/centromedico/reservaciones/up`,data).then(datos=>{
+      console.log(datos);
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "Confirmado con exito",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    }).catch(error=>{
+      console.log(error);
+      Swal.fire({
+        position: "center",
+        icon: "error",
+        title: "No se pudo actualizar la reservacion",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+    });
   };
 
   const confirmarReserva = (id: Reserva['idreservas']) => {

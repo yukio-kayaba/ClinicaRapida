@@ -57,19 +57,18 @@ export const ReservaListSection: FC<ReservaListSectionProps> = ({
           >
             <div className="reserva-card-main">
               <div className="reserva-card-time">
-                <span>{reserva.hora}</span>
-                <span className="time-range-separator">·</span>
-                <span>{reserva.fecha}</span>
+                <span> {reserva.hora}</span>
+                <span> {reserva.fecha}</span>
+                <span
+                  className={`reserva-status-chip status-${reserva.estado.toLowerCase()}`}
+                >
+                  {reserva.estado.toLowerCase()}
+                </span>
               </div>
               <div className="reserva-card-info">
                 <p className="reserva-paciente">{reserva.nombre}</p>
                 <p className="reserva-contacto">{reserva.motivo}</p>
               </div>
-              <span
-                className={`reserva-status-chip status-${reserva.estado.toLowerCase()}`}
-              >
-                {reserva.estado.toLowerCase()}
-              </span>
             </div>
           </article>
         ))}
