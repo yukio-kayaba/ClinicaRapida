@@ -1,6 +1,7 @@
 import { RUTA } from "@/const";
 import { Consultas } from "@/data/Consultas";
 import { userReservas } from "@/hooks/userReservas"
+import { Reserva } from "@/types/reserva";
 import { useEffect } from "react";
 
 export const ConsultasViewBoostrap = ()=>{
@@ -12,8 +13,10 @@ export const ConsultasViewBoostrap = ()=>{
                 const consultaResponse = await Consultas.GET(
                   `${RUTA}/api/centromedico/reservaciones`,
                 )
-                console.log(consultaResponse.data);
-                loadReservas(consultaResponse.data);
+                if(consultaResponse.data !== undefined){
+                    const reserva1 = consultaResponse.data as Reserva[];    
+                    loadReservas(reserva1);
+                }
             } catch (error) {
                 console.log(error);
             }

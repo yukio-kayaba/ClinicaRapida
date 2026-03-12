@@ -1,5 +1,13 @@
 export type EstadoReserva = 'ESPERA' | 'CONFIRMADO' | 'RECHAZADO';
 
+
+interface profesionalPersona { 
+  
+    nombre: string;
+    dni: string;
+  
+}
+
 export interface Reserva {
   apellido: string;
   correo: string;
@@ -13,7 +21,9 @@ export interface Reserva {
   idreservas: number;
   motivo: string;
   nombre: string;
-  telefono:string;
-}
+  telefono: string;
+  profesional:profesionalPersona ;
+  personalConfirmador?: profesionalPersona;
+} 
 
 

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { AuthUser, LoginCredentials } from '../types/auth';
-import { dataCM, RUTA } from '@/const';
+import { dataCM, RESERVAS_STORAGE_KEY, RUTA } from '@/const';
 import { Consultas } from '@/data/Consultas';
 
 interface AuthContextType {
@@ -18,7 +18,10 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const stored = localStorage.getItem(dataCM);
+    return stored ? JSON.parse(stored) : null;
+  });;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem(RESERVAS_STORAGE_KEY);
   };
 
   const value: AuthContextType = {

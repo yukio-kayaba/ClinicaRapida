@@ -113,6 +113,14 @@ export const ReservaListSection: FC<ReservaListSectionProps> = ({
                 <span className="label">Motivo</span>
                 <span>{selectedReserva.motivo}</span>
               </div>
+
+              {selectedReserva.personalConfirmador !== undefined && (
+                <div className="reserva-modal-row">
+                  <span className="label">Confirmado</span>
+                  <span>{selectedReserva.personalConfirmador.nombre}</span>
+                </div>
+              )}
+
               <div className="reserva-modal-row">
                 <span className="label">Creado</span>
                 <span>

@@ -3,15 +3,16 @@ import type { Reserva, EstadoReserva } from '../types/reserva';
 import { RESERVAS_MOCK } from '../data/reservasMock';
 import { useSocket } from './socketsContext';
 import { Consultas } from '@/data/Consultas';
-import { RUTA } from '@/const';
+import { RESERVAS_STORAGE_KEY, RUTA } from '@/const';
 import Swal from 'sweetalert2';
+import { useAuthContext } from './AuthContext';
 
 export interface ReservasContextType {
   reservas: Reserva[];
   addReserva: (reserva: Omit<Reserva, 'idreservas' | 'fechacreacion' | 'estado'>) => Promise<Reserva>;
   editReserva: (id: Reserva['idreservas'], datos: Partial<Reserva>) => void;
   deleteReserva: (id: Reserva['idreservas']) => void;
-  loadReservas: (data: Reserva[] | undefined) => void;
+  loadReservas: (data: Reserva[]) => void;
   cambiarEstado: (id: Reserva['idreservas'], estado: EstadoReserva) => void;
   confirmarReserva: (id: Reserva['idreservas']) => void;
   rechazarReserva: (id: Reserva['idreservas']) => void;
@@ -19,10 +20,10 @@ export interface ReservasContextType {
 
 const ReservasContext = createContext<ReservasContextType | undefined>(undefined);
 
-const RESERVAS_STORAGE_KEY = 'reservas_medicas';
 
 export const ReservasProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const socket = useSocket();
+  const { logout} = useAuthContext()
   const [reservas, setReservas] = useState<Reserva[]>(() => {
   
     const stored = localStorage.getItem(RESERVAS_STORAGE_KEY);
@@ -56,11 +57,25 @@ export const ReservasProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       );
     }
 
+    const desconectar= ()=>{
+      Swal.fire({
+        title: "Sesión expirada",
+        text: "Vuelve a iniciar sesión",
+        icon: "warning",
+        showConfirmButton: false,
+        timer: 1500,
+      }).then(() => {
+        logout();
+      });
+    }
+
     socket.on("server::CM::reserva", getReserva);
     socket.on("server::CM::reservaConfirm",updateReserva);
+    socket.on("disconnect",desconectar)
     return ()=>{
       socket.off("server::CM::reserva", getReserva);
       socket.off("server::CM::reservaConfirm",updateReserva);
+      socket.off("disconnect", desconectar);
     }
   },[socket])
 

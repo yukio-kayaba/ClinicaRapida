@@ -28,7 +28,7 @@ export const ReservasDashboard: FC = () => {
       <main className="dashboard-layout">
         <section className="calendar-wrapper">
           <iframe
-            src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FLima&showPrint=0&title=Reservaciones&showTz=0&showCalendars=0&src=OWE3NTZhODBjMTg4MjMzNWJiYzRmY2IzZTAzZjhiYzFmY2MzYzczZGUzMmY2YmE2YjQ0M2IzMjM3ZTA2ODFmZEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%23795548"
+            src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FLima&showPrint=0&showTz=0&showDate=0&showCalendars=0&src=Y2VudHJvbWVkaWM4NTRAZ21haWwuY29t&src=ZXMtNDE5LnBlI2hvbGlkYXlAZ3JvdXAudi5jYWxlbmRhci5nb29nbGUuY29t&color=%23039be5&color=%230b8043"
             style={{
               borderWidth: "0",
               width: "100%",
@@ -46,24 +46,24 @@ export const ReservasDashboard: FC = () => {
           <div className="side-panel-tabs">
             <button
               type="button"
-              className={`tab-button ${activeTab === 'espera' ? 'tab-button-active' : ''}`}
-              onClick={() => setActiveTab('espera')}
+              className={`tab-button ${activeTab === "espera" ? "tab-button-active" : ""}`}
+              onClick={() => setActiveTab("espera")}
             >
               En espera
             </button>
             <button
               type="button"
               className={`tab-button ${
-                activeTab === 'respondidos' ? 'tab-button-active' : ''
+                activeTab === "respondidos" ? "tab-button-active" : ""
               }`}
-              onClick={() => setActiveTab('respondidos')}
+              onClick={() => setActiveTab("respondidos")}
             >
               Respondidos
             </button>
           </div>
 
           <div className="side-panel-content">
-            {activeTab === 'espera' ? (
+            {activeTab === "espera" ? (
               <ReservaListSection
                 title="Pendientes"
                 color="yellow"
