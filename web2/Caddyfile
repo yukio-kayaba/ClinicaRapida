@@ -1,0 +1,9 @@
+:80
+
+# serve frontend files
+root * /usr/share/caddy
+
+# fallback to index.html
+try_files {path} /index.html
+
+file_server
