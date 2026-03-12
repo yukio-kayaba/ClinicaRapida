@@ -23,8 +23,9 @@ export const RESERVAS_MOCK: Reserva[] = [
     fecha: addDays(hoy, 0),
     hora: '09:00',
     motivo: 'Consulta general',
-    estado: 'PENDIENTE',
+    estado: 'ESPERA',
     fechacreacion: new Date().toISOString(),
+    profesional: { nombre: 'Dra. Ana Torres', dni: '20123456' },
   },
   {
     idreservas: 2,
@@ -40,6 +41,7 @@ export const RESERVAS_MOCK: Reserva[] = [
     motivo: 'Pediatría',
     estado: 'CONFIRMADO',
     fechacreacion: new Date().toISOString(),
+    profesional: { nombre: 'Dr. Pablo Rivas', dni: '20999888' },
   },
   {
     idreservas: 3,
@@ -55,6 +57,7 @@ export const RESERVAS_MOCK: Reserva[] = [
     motivo: 'Traumatología',
     estado: 'RECHAZADO',
     fechacreacion: new Date().toISOString(),
+    profesional: { nombre: 'Dra. Sofía Díaz', dni: '27111222' },
   },
 ];
 
