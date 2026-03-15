@@ -54,6 +54,10 @@ fun AppointmentFormScreen(
     var motivo by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var showSuccessMessage by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var dniError by remember { mutableStateOf<String?>(null) }
+    var telefonoError by remember { mutableStateOf<String?>(null) }
+    var correoError by remember { mutableStateOf<String?>(null) }
     
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
@@ -76,15 +80,23 @@ fun AppointmentFormScreen(
         // DNI Field
         OutlinedTextField(
             value = dni,
-            onValueChange = { dni = it },
+            onValueChange = { 
+                dni = it.filter { char -> char.isDigit() }
+                dniError = null // Limpiar error al escribir
+                errorMessage = null // Limpiar error general también
+            },
             label = { Text("DNI") },
+            placeholder = { Text("8 dígitos", color = TextSecondary) },
+            isError = dniError != null,
+            supportingText = dniError?.let { { Text(it, color = androidx.compose.ui.graphics.Color(0xFFD32F2F)) } },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = androidx.compose.ui.graphics.Color.White,
-                unfocusedContainerColor = androidx.compose.ui.graphics.Color.White
+                unfocusedContainerColor = androidx.compose.ui.graphics.Color.White,
+                errorContainerColor = androidx.compose.ui.graphics.Color(0xFFFFEBEE)
             ),
             singleLine = true
         )
@@ -121,34 +133,50 @@ fun AppointmentFormScreen(
             singleLine = true
         )
         
-        // Teléfono Field
+        // Teléfono Field (9 dígitos, solo números - Perú)
         OutlinedTextField(
             value = telefono,
-            onValueChange = { telefono = it },
+            onValueChange = {
+                telefono = it.filter { char -> char.isDigit() }.take(9)
+                telefonoError = null
+                errorMessage = null
+            },
             label = { Text("Teléfono") },
+            placeholder = { Text("9 dígitos (Perú)", color = TextSecondary) },
+            isError = telefonoError != null,
+            supportingText = telefonoError?.let { { Text(it, color = androidx.compose.ui.graphics.Color(0xFFD32F2F)) } },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = androidx.compose.ui.graphics.Color.White,
-                unfocusedContainerColor = androidx.compose.ui.graphics.Color.White
+                unfocusedContainerColor = androidx.compose.ui.graphics.Color.White,
+                errorContainerColor = androidx.compose.ui.graphics.Color(0xFFFFEBEE)
             ),
             singleLine = true
         )
         
-        // Correo electrónico Field
+        // Correo electrónico Field (debe contener @)
         OutlinedTextField(
             value = correo,
-            onValueChange = { correo = it },
+            onValueChange = {
+                correo = it
+                correoError = null
+                errorMessage = null
+            },
             label = { Text("Correo electrónico") },
+            placeholder = { Text("ejemplo@correo.com", color = TextSecondary) },
+            isError = correoError != null,
+            supportingText = correoError?.let { { Text(it, color = androidx.compose.ui.graphics.Color(0xFFD32F2F)) } },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = androidx.compose.ui.graphics.Color.White,
-                unfocusedContainerColor = androidx.compose.ui.graphics.Color.White
+                unfocusedContainerColor = androidx.compose.ui.graphics.Color.White,
+                errorContainerColor = androidx.compose.ui.graphics.Color(0xFFFFEBEE)
             ),
             singleLine = true
         )
@@ -259,6 +287,18 @@ fun AppointmentFormScreen(
             minLines = 3
         )
         
+        // Error Message
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage!!,
+                fontSize = 14.sp,
+                color = androidx.compose.ui.graphics.Color(0xFFD32F2F),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            )
+        }
+        
         // Success Message
         if (showSuccessMessage) {
             Text(
@@ -275,29 +315,72 @@ fun AppointmentFormScreen(
         Button(
             onClick = {
                 if (!isLoading) {
+                    // Limpiar errores previos
+                    errorMessage = null
+                    dniError = null
+                    telefonoError = null
+                    correoError = null
+                    
+                    // Validar DNI antes de enviar
+                    val dniClean = dni.trim()
+                    if (dniClean.length != 8 || !dniClean.all { it.isDigit() }) {
+                        dniError = "El DNI debe tener exactamente 8 dígitos"
+                        return@Button
+                    }
+                    
+                    // Validar campos requeridos
+                    if (nombre.trim().isEmpty() || apellido.trim().isEmpty() || 
+                        correo.trim().isEmpty() || telefono.trim().isEmpty() ||
+                        fecha.isEmpty() || hora.isEmpty() || motivo.trim().isEmpty()) {
+                        errorMessage = "Por favor completa todos los campos"
+                        return@Button
+                    }
+                    
+                    // Validar teléfono (9 dígitos)
+                    val telefonoClean = telefono.trim()
+                    if (telefonoClean.length != 9 || !telefonoClean.all { it.isDigit() }) {
+                        telefonoError = "El teléfono debe tener exactamente 9 dígitos (número peruano)"
+                        return@Button
+                    }
+                    
+                    // Validar correo (debe contener @)
+                    val correoClean = correo.trim()
+                    if (!correoClean.contains("@")) {
+                        correoError = "El correo debe contener un @ válido"
+                        return@Button
+                    }
+                    
                     isLoading = true
                     scope.launch {
-                        val request = ReservacionRequest(
-                            nombre = nombre,
-                            apellido = apellido,
-                            correo = correo,
-                            dni = dni,
-                            fecha = fecha,
-                            hora = hora,
-                            idpersonalacceso = doctorId,
-                            motivo = motivo,
-                            telefono = telefono
-                        )
-                        
-                        ReservacionRepository.crearReservacion(request)
-                        
-                        isLoading = false
-                        showSuccessMessage = true
-                        
-                        // Wait a moment to show the success message, then navigate
-                        delay(2000)
-                        navController?.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
+                        try {
+                            val request = ReservacionRequest(
+                                nombre = nombre.trim(),
+                                apellido = apellido.trim(),
+                                correo = correoClean,
+                                dni = dniClean,
+                                fecha = fecha,
+                                hora = hora,
+                                idpersonalacceso = doctorId,
+                                motivo = motivo.trim(),
+                                telefono = telefonoClean
+                            )
+                            
+                            ReservacionRepository.crearReservacion(request)
+                            
+                            isLoading = false
+                            showSuccessMessage = true
+                            errorMessage = null
+                            
+                            // Wait a moment to show the success message, then navigate
+                            delay(2000)
+                            navController?.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Home.route) { inclusive = true }
+                            }
+                        } catch (e: Exception) {
+                            isLoading = false
+                            // Mostrar el mensaje de error del backend o genérico
+                            errorMessage = e.message ?: "Error al crear la reservación. Intenta nuevamente."
+                            e.printStackTrace()
                         }
                     }
                 }
@@ -306,7 +389,7 @@ fun AppointmentFormScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(12.dp),
-            enabled = !isLoading && !showSuccessMessage
+            enabled = !isLoading && !showSuccessMessage && errorMessage == null
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
