@@ -10,7 +10,7 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface ApiService {
-    @GET("api/proyecto")
+    @GET("api/centromedico/servicios/proyecto")
     suspend fun obtenerProyecto(): ProyectoResponse
     
     @GET("/api/centromedico/personal")

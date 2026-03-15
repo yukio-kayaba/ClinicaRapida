@@ -1,9 +1,9 @@
 import { io } from "socket.io-client";
-import { RUTA,dataPruebaz } from "./const";
+import { RUTA,dataCM } from "./const";
 
 export const getSocket = io(RUTA, {
   autoConnect: false,
   auth: {
-    token: localStorage.getItem(dataPruebaz),
+    token: localStorage.getItem(dataCM),
   },
 });

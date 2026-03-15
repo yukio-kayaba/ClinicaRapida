@@ -35,7 +35,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async ({ email, password }: LoginCredentials) => {
     setIsLoading(true);
-    setError(null);
       try {
         const datos = {
           usuario:email,
@@ -46,6 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const response = data.data as AuthUser;
         localStorage.setItem(dataCM,JSON.stringify(response));
         setUser(response);
+        window.location.reload();
       } catch (err) {
         const error = err as Error;
         console.log(error);
@@ -54,7 +54,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } finally {
         setIsLoading(false);
       }
-    };
+
+  };
 
   const logout = () => {
     setUser(null);

@@ -34,7 +34,7 @@ export const ReservasProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return RESERVAS_MOCK;
       }
     }
-    return RESERVAS_MOCK;
+    return [];
   });
 
   useEffect(() => {

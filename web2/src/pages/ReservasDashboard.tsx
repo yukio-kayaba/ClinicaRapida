@@ -3,10 +3,11 @@ import { useMemo, useState } from 'react';
 import { useReservasContext } from '../context/ReservasContext';
 import { ReservaListSection } from '../components/ReservaListSection';
 import { ConsultasViewBoostrap } from '@/controllers/ConsultasViewBoostrarp';
+import { useAuthContext } from '@/context/AuthContext';
 
 export const ReservasDashboard: FC = () => {
   const { reservas, confirmarReserva, rechazarReserva } = useReservasContext();
-
+  const { logout } = useAuthContext()
   const hoy = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const [activeTab, setActiveTab] = useState<'espera' | 'respondidos'>('espera');
@@ -20,10 +21,13 @@ export const ReservasDashboard: FC = () => {
     <div className="dashboard-root">
       <ConsultasViewBoostrap />
       <header className="dashboard-header">
-        <div>
-          <h1>Sistema de reservas médicas</h1>
-          <p>Dashboard de hoy · {hoy}</p>
-        </div>
+          <div className='titulo-header' >
+            <h1>Sistema de reservas médicas</h1>
+            <p>Dashboard de hoy · {hoy}</p>
+          </div>
+          <div className='opciones-header' >
+            <p className='cerrarSecion' onClick={logout} >Cerrar Sesion</p>
+          </div>
       </header>
       <main className="dashboard-layout">
         <section className="calendar-wrapper">
