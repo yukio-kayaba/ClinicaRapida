@@ -44,8 +44,8 @@ object PersonalMapper {
         )
     }
     
-    fun mapToStaffList(personal: Personal): List<Staff> {
-        return listOf(mapToStaff(personal))
+    fun mapToStaffList(personalList: List<Personal>): List<Staff> {
+        return personalList.map { mapToStaff(it) }
     }
 }
 
